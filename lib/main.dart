@@ -5,6 +5,8 @@ import './bloc/playing.dart';
 import './pages/home.dart';
 import './pages/preferences.dart';
 import './pages/download.dart';
+import './bloc/BlocProvider.dart';
+import './bloc/list.dart';
 
 void main() => runApp(StartApp());
 
@@ -12,8 +14,11 @@ class StartApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return PlayingSongProvider(
-      child: OKToast(child: MaterialApp(
+    return OKToast(child: BlocProvider<PlayingSongBLoC>(
+      bloc: PlayingSongBLoC(),
+      child: BlocProvider<SonglistBLoC>(
+      bloc: SonglistBLoC(),
+      child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
           // This is the theme of your application.
@@ -44,6 +49,6 @@ class StartApp extends StatelessWidget {
           }
         },
       ),),
-    );
+    ));
   }
 }

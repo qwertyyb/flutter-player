@@ -1,11 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_learn/bloc/BlocProvider.dart';
+import 'package:flutter_learn/bloc/list.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../github/github.dart';
 import '../models/song.dart';
 import '../bloc/playing.dart';
 import '../components/showPlayingList.dart';
@@ -31,47 +29,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  GithubClient _githubClient;
+  bool loading = true;
 
-  List<Song> favoriteList = [];
-  bool loading = false;
-
-  _HomePageState () {
-    _githubClient = new GithubClient(token: '');
+  @override
+  void initState(){
+    super.initState();
     this.getList();
   }
 
-  getList () async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String gistID = prefs.getString('prefs/gistID');
-    if (gistID == null) return null;
-    Response result = await _githubClient.gist.getGistInfo(gistID);
-    Map<String, dynamic> files = result.data['files'];
-    Map<String, dynamic> file = files['favorite.json'];
-    Map<String, dynamic> json = jsonDecode(file['content']);
-    List<Song> list = new List<Song>.from(json['list'].map((item) => new Song(
-        id: item['id'].toString(),
-        albumName: item['album'],
-        artists: new List<String>.from(item['artists']),
-        title: item['title'],
-        coverUrl: item['cover'],
-        lyrics: '',
-        urls: new Map<String, String>.from(item['urls'])
-      )).toList());
-    PlayingSongProvider.bLoc.setList(list);
-    if (widget.list == null) {
-      setState(() {
-        favoriteList = list;
-        loading = false;
-      });
-    }
-    return json;
+  getList() async {
+    SonglistBLoC songlistBLoC = BlocProvider.of<SonglistBLoC>(context);
+    await songlistBLoC.getList(type: "favorite");
+    setState((){
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
+    SonglistBLoC songlistBLoC = BlocProvider.of<SonglistBLoC>(context);
+    PlayingSongBLoC playingBloc = BlocProvider.of<PlayingSongBLoC>(context);
     //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
@@ -84,15 +61,25 @@ class _HomePageState extends State<HomePage> {
       ),
       body: loading ? Center(
         child: CircularProgressIndicator(),
-      ) : ListView.builder(
-          itemBuilder: (BuildContext ctx, int index) {
-            var list = widget.list == null ? favoriteList : widget.list;
-            if (index < list.length) {
-              return SongListItem(song: list[index]);
-            }
-            return null;
+      ) : StreamBuilder<List<Song>>(
+          stream: songlistBLoC.listMap["favorite"],
+          builder: (BuildContext context, AsyncSnapshot<List<Song>> snapshot) {
+            List<Song> list = snapshot.data;
+            return ListView.builder(
+              itemBuilder: (BuildContext ctx, int index) {
+                if (list != null && index < list.length) {
+                  return SongListItem(
+                    song: list[index],
+                    onPlay: () {
+                      playingBloc.setList(list);
+                    },
+                  );
+                }
+                return null;
+              }
+            );
           }
-      ),
+        ),
       bottomNavigationBar: PlayerBar(),
       drawer: _Drawer()
     );
@@ -114,27 +101,7 @@ class _DrawerState extends State<_Drawer> {
   List categoryList = [];
 
   _getList() async {
-    GithubClient githubClient = new GithubClient(token: ' ');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String gistID = prefs.getString('prefs/gistID');
-    if (gistID == null) return;
-    Response r = await githubClient.gist.getGistInfo(gistID);
-    Map<String, dynamic> files = r.data['files'];
-    Map<String, dynamic> obj = json.decode(files['_meta.json']['content']);
     setState(() {
-      categoryList = obj['category_list'].map((category) {
-        var file = json.decode(files[category['file']]['content']);
-        category['content'] = new List<Song>.from(file['list'].map((item) => new Song(
-          id: item['id'].toString(),
-          albumName: item['album'],
-          artists: new List<String>.from(item['artists']),
-          title: item['title'],
-          coverUrl: item['cover'],
-          lyrics: '',
-          urls: new Map<String, String>.from(item['urls'])
-        )).toList());
-        return category;
-      }).toList();
       loading = false;
     });
   }
@@ -193,7 +160,7 @@ class PlayerBar extends StatelessWidget {
 
   @override
   Widget build (BuildContext context) {
-    PlayingSongBLoC bloc = PlayingSongProvider.of(context);
+    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
 
     return GestureDetector(
       onTap: () {
@@ -221,7 +188,7 @@ class PlayerBar extends StatelessWidget {
                   builder: (context, snapshot) => CachedNetworkImage(
                     width: 40,
                     height: 40,
-                    imageUrl: (snapshot.data as Song).coverUrl,
+                    imageUrl: (snapshot.data as Song).cover,
                     placeholder: (ctx, url) => Image.memory(kTransparentImage),
                   ),
                 ),
@@ -233,7 +200,7 @@ class PlayerBar extends StatelessWidget {
                 initialData: bloc.song,
                 builder: (context, snapshot) {
                   Song _song = snapshot.data as Song;
-                  String subTitle = _song.artists.join('/') + ' - ' + _song.albumName;
+                  String subTitle = _song.artists + ' - ' + _song.album;
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,

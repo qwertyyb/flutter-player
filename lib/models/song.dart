@@ -1,11 +1,19 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'song.g.dart';
+
+@JsonSerializable(nullable: false)
 class Song {
-  String id;
+  int id;
   String title;
-  Map<String, String> urls;
-  String coverUrl;
-  String albumName;
-  List<String> artists;
+  String url;
+  String cover;
+  String album;
+  String artists;
   String lyrics;
 
-  Song({this.id, this.title, this.urls, this.coverUrl, this.albumName, this.artists, this.lyrics});
+  Song({this.id, this.title, this.url, this.cover, this.album, this.artists, this.lyrics});
+
+  factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
+  Map<String, dynamic> toJson() => _$SongToJson(this);
 }

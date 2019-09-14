@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_learn/bloc/BlocProvider.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:oktoast/oktoast.dart';
@@ -14,7 +15,7 @@ import '../components/showPlayingList.dart';
 class _Title extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    PlayingSongBLoC bloc = PlayingSongProvider.of(context);
+    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,7 +73,7 @@ class _SubTitle extends StatelessWidget {
 class _Cover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    PlayingSongBLoC bloc = PlayingSongProvider.of(context);
+    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
 
     return AspectRatio(aspectRatio: 1, child: Container(
       // margin: EdgeInsets.only(left: 20, right: 20, top: 40, bottom: 40),
@@ -84,7 +85,7 @@ class _Cover extends StatelessWidget {
         builder: (context, snapshot) => ClipOval(
           child: CachedNetworkImage(
             placeholder: (ctx, url) => Image.memory(kTransparentImage),
-            imageUrl: snapshot.data.coverUrl
+            imageUrl: snapshot.data.cover
           )
         )
       ),
@@ -99,7 +100,7 @@ class _Cover extends StatelessWidget {
 class _DurationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    PlayingSongBLoC bloc = PlayingSongProvider.bLoc;
+    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
     return StreamBuilder(
       stream: bloc.durationStream,
       initialData: bloc.duration,
@@ -138,7 +139,7 @@ class _Actions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    PlayingSongBLoC bloc = PlayingSongProvider.of(context);
+    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
 
     return Container(
       margin: EdgeInsets.only(top: 20),
@@ -245,8 +246,8 @@ class _Actions extends StatelessWidget {
                     });
                   }).then((path) {
                     return FlutterDownloader.enqueue(
-                      url: bloc.song.urls['low'],
-                      fileName: '${bloc.song.artists.join('/')}-${bloc.song.title}',
+                      url: bloc.song.url,
+                      fileName: '${bloc.song.artists}-${bloc.song.title}',
                       savedDir: path
                     );
                   }).then((taskId) {
@@ -278,7 +279,7 @@ class _PlayerPageState extends State<PlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-    PlayingSongBLoC bloc = PlayingSongProvider.of(context);
+    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
 
     return SafeArea(top: false,
       child: Material(child: StreamBuilder(
@@ -288,7 +289,7 @@ class _PlayerPageState extends State<PlayerPage> {
           // color: Colors.red,
           decoration: Decoration.lerp(BoxDecoration(
             image: DecorationImage(
-              image: new CachedNetworkImageProvider(bloc.song.coverUrl),
+              image: new CachedNetworkImageProvider(bloc.song.cover),
               fit: BoxFit.cover
             )
           ), BoxDecoration(
@@ -305,7 +306,7 @@ class _PlayerPageState extends State<PlayerPage> {
                 builder: (BuildContext ctx, sp) => Column(
                   children: <Widget>[
                     _Title(),
-                    _SubTitle(sp.data.artists.join('/')),
+                    _SubTitle(sp.data.artists),
                     Expanded(child: Padding(padding: EdgeInsets.all(30), child: Center(child: _Cover()),),),
                     _DurationBar(),
                     _Actions()

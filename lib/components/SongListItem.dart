@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_learn/bloc/BlocProvider.dart';
 import '../models/song.dart';
 import '../bloc/playing.dart';
 
@@ -7,19 +8,21 @@ class SongListItem extends StatelessWidget {
 
   final Song song;
   final bool toPlayer;
+  final VoidCallback onPlay;
 
-  SongListItem ({this.song, this.toPlayer = true});
+  SongListItem ({this.song, this.toPlayer = true, this.onPlay });
 
   @override
   Widget build(BuildContext context) {
-    PlayingSongBLoC bloc = PlayingSongProvider.of(context);
+    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
 
-    return GestureDetector(
-      onTap: () async {
-        PlayingSongProvider.of(context).play(song);
+    return InkWell(
+      onTap: () {
+        bloc.play(song);
         if (toPlayer) {
           Navigator.pushNamed(context, '/player');
         }
+        if (onPlay != null) onPlay();
       },
       child: StreamBuilder(
         stream: bloc.stream,
@@ -48,7 +51,7 @@ class SongListItem extends StatelessWidget {
                       padding: EdgeInsets.only(bottom: 3),
                       child:Text(song.title, style: TextStyle(fontSize: 18, color: textColor))
                     ),
-                    Text(song.artists.join('/') + ' - ' + song.albumName,
+                    Text(song.artists + ' - ' + song.album,
                       style: TextStyle(color: active ? Theme.of(context).primaryColor : Colors.black54, fontSize: 12)
                     )
                   ],

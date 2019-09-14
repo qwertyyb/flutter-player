@@ -1,4 +1,5 @@
 import 'dart:math' as Math;
+import 'package:flutter_learn/bloc/BlocProvider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -12,16 +13,14 @@ enum PlayMode {
   Random
 }
 
-class PlayingSongBLoC {
+class PlayingSongBLoC implements BlocBase {
   Song _song = new Song(
-    id: '1',
+    id: 1,
     title: '灯花佐酒',
-    artists: <String>['河图'],
-    albumName: '灯花佐酒',
-    coverUrl: 'https://y.gtimg.cn/music/photo_new/T002R800x800M0000002WzhX07r0ew.jpg?max_age=2592000',
-    urls: <String, String>{
-      'low': 'http://cdn.qwertyyb.cn/audio/河图-灯花佐酒.mp3'
-    }
+    artists: '河图',
+    album: '灯花佐酒',
+    cover: 'https://y.gtimg.cn/music/photo_new/T002R800x800M0000002WzhX07r0ew.jpg?max_age=2592000',
+    url: 'http://cdn.qwertyyb.cn/audio/河图-灯花佐酒.mp3'
   );
   Duration _duration = Duration(seconds: 100);
   Duration _position = Duration(seconds: 0);
@@ -101,7 +100,7 @@ class PlayingSongBLoC {
   }
 
   togglePlayPause () async {
-    _state == AudioPlayerState.PLAYING ? _player.pause() : _player.play(_song.urls['low']);
+    _state == AudioPlayerState.PLAYING ? _player.pause() : _player.play(_song.url);
   }
 
   play ([Song song]) async {
@@ -109,7 +108,7 @@ class PlayingSongBLoC {
     _song = song;
     _songSubject.add(song);
     await _player.stop();
-    _player.play(song.urls['low']);
+    _player.play(song.url);
   }
 
   pause () async {
@@ -157,16 +156,3 @@ class PlayingSongBLoC {
   }
 }
 
-class PlayingSongProvider extends InheritedWidget {
-
-  static final PlayingSongBLoC bLoc = PlayingSongBLoC();
-
-  PlayingSongProvider ({Key key, Widget child}) : super(key: key, child: child);
-
-  @override
-  bool updateShouldNotify(_) => true;
-
-  static PlayingSongBLoC of (BuildContext context) {
-    return bLoc;
-  }
-}

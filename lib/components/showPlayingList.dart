@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_learn/bloc/BlocProvider.dart';
 import './SongListItem.dart';
 import '../bloc/playing.dart';
 
 showPlayingList (BuildContext context) {
-  PlayingSongBLoC bloc = PlayingSongProvider.bLoc;
+  PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
   showModalBottomSheet(
     context: context,
     builder: (BuildContext ctx) => Container(
