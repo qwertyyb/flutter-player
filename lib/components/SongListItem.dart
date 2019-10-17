@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_learn/bloc/BlocProvider.dart';
+import 'package:provider/provider.dart';
 import '../models/song.dart';
-import '../bloc/playing.dart';
+import '../providers/playing.dart';
 
 // 歌曲列表项
 class SongListItem extends StatelessWidget {
@@ -14,58 +14,50 @@ class SongListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
+    Playing playing = Provider.of<Playing>(context);
 
     return InkWell(
       onTap: () {
-        bloc.play(song);
+        playing.play(song);
         if (toPlayer) {
           Navigator.pushNamed(context, '/player');
         }
         if (onPlay != null) onPlay();
       },
-      child: StreamBuilder(
-        stream: bloc.stream,
-        initialData: bloc.song,
-        builder: (ctx, ss) {
-          bool active = song.id == ss.data.id;
-          Color textColor = active ? Theme.of(context).primaryColor : Colors.black;
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[Container(
-              width: 5.0,
-              height: 40,
-              color: active ? Theme.of(context).primaryColor : Colors.transparent,
-              margin: EdgeInsets.only(right: 16.0)
-            ),
-            Expanded(child: Container(
-              padding: EdgeInsets.only(top: 4.0, bottom: 4.0, right: 10.0),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.black12))
-              ),
-              child: Row(children: <Widget>[
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 3),
-                      child:Text(song.title, style: TextStyle(fontSize: 18, color: textColor))
-                    ),
-                    Text(song.artists + ' - ' + song.album,
-                      style: TextStyle(color: active ? Theme.of(context).primaryColor : Colors.black54, fontSize: 12)
-                    )
-                  ],
-                )),
-                IconButton(
-                  icon: Icon(Icons.more_horiz), iconSize: 20,
-                  color: textColor,
-                  onPressed: () {},
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[Container(
+          width: 3.0,
+          height: 40,
+          color: playing.song.id == song.id ? Theme.of(context).primaryColor : Colors.transparent,
+          margin: EdgeInsets.only(right: 16.0)
+        ),
+        Expanded(child: Container(
+          padding: EdgeInsets.only(top: 2.0, bottom: 2.0, right: 10.0),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.black12))
+          ),
+          child: Row(children: <Widget>[
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(bottom: 3),
+                  child:Text(song.title, style: TextStyle(fontSize: 14, color: playing.song.id == song.id ? Theme.of(context).primaryColor : Colors.black))
+                ),
+                Text(song.artists + ' - ' + song.album,
+                  style: TextStyle(color: playing.song.id == song.id ? Theme.of(context).primaryColor : Colors.black45, fontSize: 12)
                 )
-              ])
-            ))
-          ],
-        );
-      })
+              ],
+            )),
+            IconButton(
+              icon: Icon(Icons.more_horiz), iconSize: 20,
+              color: playing.song.id == song.id ? Theme.of(context).primaryColor : Colors.black,
+              onPressed: () {},
+            )
+          ])
+        ))
+      ],),
     );
   }
 }

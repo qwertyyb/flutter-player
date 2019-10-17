@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_learn/bloc/BlocProvider.dart';
-import 'package:flutter_learn/bloc/list.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
 import '../models/song.dart';
-import '../bloc/playing.dart';
 import '../components/showPlayingList.dart';
 import '../components/SongListItem.dart';
+import '../providers/songlist.dart';
+import '../providers/playing.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key, this.title, this.list}) : super(key: key);
@@ -34,12 +34,13 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState(){
     super.initState();
-    this.getList();
+    Future.microtask((){
+      this.getList();
+    });
   }
 
   getList() async {
-    SonglistBLoC songlistBLoC = BlocProvider.of<SonglistBLoC>(context);
-    await songlistBLoC.getList(type: "favorite");
+    await Provider.of<Songlist>(context).getList(type: "favorite");
     setState((){
       loading = false;
     });
@@ -47,8 +48,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    SonglistBLoC songlistBLoC = BlocProvider.of<SonglistBLoC>(context);
-    PlayingSongBLoC playingBloc = BlocProvider.of<PlayingSongBLoC>(context);
+    // Songlist songlist = Provider.of<Songlist>(context);
+    Playing playing = Provider.of<Playing>(context);
     //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
@@ -59,26 +60,23 @@ class _HomePageState extends State<HomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: loading ? Center(
+      body: loading ?Center(
         child: CircularProgressIndicator(),
-      ) : StreamBuilder<List<Song>>(
-          stream: songlistBLoC.listMap["favorite"],
-          builder: (BuildContext context, AsyncSnapshot<List<Song>> snapshot) {
-            List<Song> list = snapshot.data;
-            return ListView.builder(
-              itemBuilder: (BuildContext ctx, int index) {
-                if (list != null && index < list.length) {
-                  return SongListItem(
-                    song: list[index],
-                    onPlay: () {
-                      playingBloc.setList(list);
-                    },
-                  );
-                }
-                return null;
-              }
-            );
+      ) : Selector<Songlist, List<Song>>(
+        selector: (_, songlists) => songlists.listMap['favorite'],
+        builder: (_, list, __) => ListView.builder(
+          itemBuilder: (BuildContext ctx, int index) {
+            if (list != null && index < list.length) {
+              return SongListItem(
+                song: list[index],
+                onPlay: () {
+                  playing.updateList(list);
+                },
+              );
+            }
+            return null;
           }
+        ),
         ),
       bottomNavigationBar: PlayerBar(),
       drawer: _Drawer()
@@ -160,7 +158,7 @@ class PlayerBar extends StatelessWidget {
 
   @override
   Widget build (BuildContext context) {
-    PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
+    Playing playing = Provider.of<Playing>(context);
 
     return GestureDetector(
       onTap: () {
@@ -182,47 +180,31 @@ class PlayerBar extends StatelessWidget {
               width: 40,
               height: 40,
               child: ClipOval(
-                child: StreamBuilder(
-                  stream: bloc.stream,
-                  initialData: bloc.song,
-                  builder: (context, snapshot) => CachedNetworkImage(
-                    width: 40,
-                    height: 40,
-                    imageUrl: (snapshot.data as Song).cover,
-                    placeholder: (ctx, url) => Image.memory(kTransparentImage),
-                  ),
+                child: CachedNetworkImage(
+                  width: 40,
+                  height: 40,
+                  imageUrl: playing.song.cover,
+                  placeholder: (ctx, url) => Image.memory(kTransparentImage),
                 ),
               )
             ),
             Expanded(
-              child: StreamBuilder(
-                stream: bloc.stream,
-                initialData: bloc.song,
-                builder: (context, snapshot) {
-                  Song _song = snapshot.data as Song;
-                  String subTitle = _song.artists + ' - ' + _song.album;
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(_song.title),
-                      Text(subTitle, style: TextStyle(fontSize: 12),)
-                    ]
-                  );
-                }
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(playing.song.title),
+                  Text(playing.song.artists + ' - ' + playing.song.album, style: TextStyle(fontSize: 12),)
+                ]
               )
             ),
-            StreamBuilder(
-              stream: bloc.stateStream,
-              initialData: bloc.state,
-              builder: (context, snapshot) => IconButton(
-                color: Theme.of(context).primaryColor,
-                iconSize: 32,
-                icon: snapshot.data == AudioPlayerState.PAUSED ? Icon(Icons.play_circle_outline) : Icon(Icons.pause_circle_outline),
-                onPressed: () {
-                  bloc.togglePlayPause();
-                },
-              ),
+            IconButton(
+              color: Theme.of(context).primaryColor,
+              iconSize: 32,
+              icon: playing.state == AudioPlayerState.PAUSED ? Icon(Icons.play_circle_outline) : Icon(Icons.pause_circle_outline),
+              onPressed: () {
+                playing.togglePlayPause();
+              },
             ),
             IconButton(
               color: Theme.of(context).primaryColor,

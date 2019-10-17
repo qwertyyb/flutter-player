@@ -76,8 +76,11 @@ class _DownloadItem extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          task.status == DownloadTaskStatus.paused ? FlutterDownloader.resume(taskId: task.taskId) :
-          task.status == DownloadTaskStatus.running ? FlutterDownloader.pause(taskId: task.taskId) : null;
+          if (task.status == DownloadTaskStatus.paused) {
+            FlutterDownloader.resume(taskId: task.taskId);
+          } else if (task.status == DownloadTaskStatus.running) {
+            FlutterDownloader.pause(taskId: task.taskId);
+          }
         },
         onLongPress: onLongPress,
         child: Row(

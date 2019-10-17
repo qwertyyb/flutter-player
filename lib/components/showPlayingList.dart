@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_learn/bloc/BlocProvider.dart';
+import 'package:provider/provider.dart';
 import './SongListItem.dart';
-import '../bloc/playing.dart';
+import '../providers/playing.dart';
 
 showPlayingList (BuildContext context) {
-  PlayingSongBLoC bloc = BlocProvider.of<PlayingSongBLoC>(context);
+  Playing playing = Provider.of<Playing>(context);
   showModalBottomSheet(
     context: context,
     builder: (BuildContext ctx) => Container(
@@ -21,14 +21,12 @@ showPlayingList (BuildContext context) {
             )
           ),
           Expanded(
-            child: StreamBuilder(
-            stream: bloc.listStream,
-            builder: (BuildContext listCtx, sp) => ListView.builder(
+            child: ListView.builder(
               itemBuilder: (BuildContext itemCtx, index) {
-                return sp.data != null && index < sp.data.length ? SongListItem(song: sp.data[index], toPlayer: false,) : null;
+                return index < playing.list.length ? SongListItem(song: playing.list[index], toPlayer: false,) : null;
               },
             )
-          ))
+          )
         ]
       ),
     )
