@@ -17,7 +17,7 @@ showPlayingList (BuildContext context) {
             decoration: BoxDecoration(border: Border(bottom: BorderSide(width:0.5, color: Colors.black26))),
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-              child: Text('播放列表', style: TextStyle(fontSize: 24))
+              child: Text('播放列表', style: TextStyle(fontSize: 18))
             )
           ),
           Expanded(

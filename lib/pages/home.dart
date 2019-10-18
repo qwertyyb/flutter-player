@@ -168,7 +168,7 @@ class PlayerBar extends StatelessWidget {
         padding: EdgeInsets.only(left: 10, right: 10),
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: Colors.grey)
+            top: BorderSide(color: Colors.grey[300])
           )
         ),
         height: 60,
