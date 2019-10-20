@@ -152,7 +152,6 @@ class _Actions extends StatelessWidget {
               mode == PlayMode.Random ? Icons.shuffle :
               mode == PlayMode.Single ? Icons.trending_flat : Icons.list;
     return Container(
-      margin: EdgeInsets.only(top: 0),
       child: Column(
         children: <Widget>[
           Row(

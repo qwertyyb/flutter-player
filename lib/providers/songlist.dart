@@ -25,9 +25,9 @@ class Songlist with ChangeNotifier {
     Pager pager = Pager(offset: 0, limit: 10, total: 100, loading: true);
     pagerMap[type] = pager;
     await Future.delayed(Duration(milliseconds: 600));
-    // Response response = await Service.getList(1, 10);
-    // var list = List<Song>.from(response.data["list"].map((item) => Song.fromJson(item)));
-    var list = [
+    Response response = await Service.instance.getList(1, 10);
+    var list = List<Song>.from(response.data["list"].map((item) => Song.fromJson(item)));
+    /* var list = [
       new Song(
         id: 1, title: '灯花佐酒', artists: '河图', album: '灯花佐酒',
         cover: 'https://y.gtimg.cn/music/photo_new/T002R800x800M0000002WzhX07r0ew.jpg?max_age=2592000',
@@ -48,14 +48,14 @@ class Songlist with ChangeNotifier {
         cover: 'https://y.gtimg.cn/music/photo_new/T002R800x800M0000002WzhX07r0ew.jpg?max_age=2592000',
         url: 'https://cdn.qwertyyb.cn/audio/河图-若某日我封笔.mp3'
       ),
-    ];
+    ]; */
     listMap[type] = list;
-    // pager = Pager(
-    //   offset: response.data["offset"],
-    //   limit: response.data["limit"],
-    //   total: response.data["total"],
-    //   loading: false);
-    // pagerMap[type] = pager;
+    pager = Pager(
+      offset: response.data["offset"],
+      limit: response.data["limit"],
+      total: response.data["total"],
+      loading: false);
+    pagerMap[type] = pager;
     notifyListeners();
   }
 

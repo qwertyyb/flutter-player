@@ -43,7 +43,7 @@ class SongListItem extends StatelessWidget {
               children: <Widget>[
                 Padding(
                   padding: EdgeInsets.only(bottom: 3),
-                  child:Text(song.title, style: TextStyle(fontSize: 14, color: playing.song.id == song.id ? Theme.of(context).primaryColor : Colors.black))
+                  child:Text(song.title, style: TextStyle(fontSize: 16, color: playing.song.id == song.id ? Theme.of(context).primaryColor : Colors.black))
                 ),
                 Text(song.artists + ' - ' + song.album,
                   style: TextStyle(color: playing.song.id == song.id ? Theme.of(context).primaryColor : Colors.black45, fontSize: 12)
